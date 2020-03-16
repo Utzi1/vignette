@@ -1,0 +1,72 @@
+---
+output:
+    pdf_document
+fontfamily: arev
+---
+```{r}
+library(pander)
+library(magrittr)
+library(tidyverse)
+```
+Eine häufige Hürde ist die Übertragung von Messdaten in eine Form, welche ohne viel Umstrukturierung in der R-Umgebung genutzt werden kann.
+Das Verständnis für sinnvolle Strukturen ist jedoch auch von der Anwendung abhängig, welche sonst zur Auswertung verwendet wird, in Excel sind Datenstrukturen häufig verschachtelt aber für das Rechnen in den Excel-Sheets durchaus sinnvoll strukturiert.
+Sobald jedoch ein solcher Datensatz in der R-Umgebung weiter bearbeitet wird, kommt es zwangsläufig zu Fehlinterpretationen.
+Bei der Aufnahme von Messdaten ist die Empfehlung alles so *basic* wie möglich zu halten.
+Ein Beispiel dafür ist die Messung von Absorptionen mit vier technischen Replikaten je Messung.
+Wenn diese mehrfach wiederholt wird wobei eine Änderung am System vorgenommen wird, so ist zu beachten, dass alle Mehrfachbestimmungen so gruppiert werden, dass sie eindeutig einer Messung zugeordnet werden können:
+```{r, echo =  FALSE}
+tibble(
+                "Messung 1" = c("Wert 1", "Wert 2", "Wert 3", "Wert 4"),
+                "Messung 2" = c("Wert 1", "Wert 2", "Wert 3", "Wert 4"),
+                "Messung n" = c("Wert 1", "Wert 2", "Wert 3", "Wert 4")
+                ) %>%
+pander()
+```
+Wenn diese Technischen Replikate nun in R importiert werden, bleibt die Struktur erhalten.
+Im hier dargestellten Fall handelt es sich um den Optimalfall:
+
+* jede Variable verfügt über eine Spalte
+* jede Beobachtung wird in einer Zeile einer Variable zugeordnet.
+
+Das oben dargestellte Beispiel kann in einem tibble leicht dargestellt werden:
+```{r}
+Messdaten <- tibble(
+                "Messung 1" = c("Wert 1", "Wert 2", "Wert 3", "Wert 4"),
+                "Messung 2" = c("Wert 1", "Wert 2", "Wert 3", "Wert 4"),
+                "Messung n" = c("Wert 1", "Wert 2", "Wert 3", "Wert 4")
+                )
+```
+
+Nun kann es aber gut sein, dass zusätzliche Informationen mit einfließen, eventuell die Temperatur, die Viskosität oder eine anderer Parameter.
+Auf einem Excel-Spread-Sheet würde dafür meist eine neue Spalte oder Zeile dafür einführen.
+In der R-Umgebung entspricht das einer Liste, denn eine Liste kann ja verschiedene Informationen enthalten.
+Eine solche Liste könnten so aussehen:
+```{r}
+Datensatz <- list(
+     temp.  <- c("Temperatur 1", "Temperatur 2", "Temperatur 3", "Temperatur 4"),
+     Messdaten,
+     "Viskosität"  <- c("Viskosität 1", "Viskosität 2", "Viskosität 3", "Viskosität 4")
+        )
+pander(Datensatz)
+```
+Als Beispiel ein realer Datensatz:
+```{r}
+library(readxl)
+# Die orginale Tabelle direkt in R importiert:
+read_excel("ProgesteronVK.xlsx")
+```
+In diesem Datensatz wurden die Werte in einer, für Excel sinnvoll wirkenden Art zusammengestellt, wobei uns das bei der Weiterverarbeitung in der R-Umgebung eher hindern wird.
+Es empfiehlt sich, den Datensatz innerhalb von Excel nun soweit zu ändern, dass er leichter in eine Liste gewandelt werden kann, also nach der bereits beschriebenen
+Struktur abzubilden.
+```{r}
+# aus der vonangegangenen Tabelle wurde nach Umformung in 
+# Ecxel diese Liste generiert
+Messwerte <- list(
+    "Diese Liste enthält die Messwerte der ursprünglichen Tabelle, nur sauberer für R",
+    Progesteron.Standard <- read_excel("Progesteron.xlsx", sheet = 2),
+    Progesteron.Proben.1 <- read_excel("Progesteron.xlsx", sheet = 3),
+    Progesteron.Proben.2 <- read_excel("Progesteron.xlsx", sheet = 4)
+)
+pander(Messwerte)
+```
+
